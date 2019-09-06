@@ -2,6 +2,24 @@ import React, { Component } from 'react';
 import List from './List'
 import './App.css';
 
+const newRandomCard = () => {
+  const id = Math.random().toString(36).substring(2, 4)
+    + Math.random().toString(36).substring(2, 4);
+  return {
+    id,
+    title: `Random Card ${id}`,
+    content: 'lorem ipsum',
+  }
+}
+
+function omit(obj, keyToOmit) {
+  return Object.entries(obj).reduce(
+    (newObj, [key, value]) =>
+        key === keyToOmit ? newObj : {...newObj, [key]: value},
+    {}
+  );
+}
+
 class App extends Component {
   static defaultProps = {
 
@@ -22,39 +40,25 @@ class App extends Component {
   handleDeleteCard = (item, list) => {
     console.log('card: ', item, "list: ", list)
     const Lists = this.state.lists.map((listNum) => {
-      if (listNum.id === list) {
-        let cards = listNum.cardIds.filter((card) => card !== item);
-        listNum.cardIds = cards
-      }
-      return listNum
+      let cards = listNum.cardIds.filter((card) => card !== item);
+      // listNum.cardIds = cards       <---- don't use this, this is mutating the array
+      // return Object.assign({}, listNum, {cardIds: cards}) <----- react way
+      return {...listNum, cardIds: cards}       // <----- alt react way
     })
-    omit()
+
+    const allCardsCopy = {...this.state.allCards};
+    const newCards = omit(allCardsCopy, item);
+    console.log(newCards);
+    console.log(`item we want to delete from cards: ${item}`);
 
     this.setState( {
       lists: Lists,
+      allCards: newCards,
     })
   }
 
-  omit = (obj, keyToOmit) => {
-    return Object.entries(obj).reduce(
-      (newObj, [key, value]) =>
-          key === keyToOmit ? newObj : {...newObj, [key]: value},
-      {}
-    );
-  }
-
-  newRandomCard = () => {
-    const id = Math.random().toString(36).substring(2, 4)
-      + Math.random().toString(36).substring(2, 4);
-    return {
-      id,
-      title: `Random Card ${id}`,
-      content: 'lorem ipsum',
-    }
-  }
-
   handleAddCard = (listId) => {
-    const myNewCard = this.newRandomCard();
+    const myNewCard = newRandomCard();
     const newCardList = {...this.state.allCards, [myNewCard.id] : myNewCard };
     const lists = this.state.lists.map((list) => {
       if (list.id === listId) {
